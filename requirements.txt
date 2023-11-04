@@ -1,7 +1,7 @@
-streamlit
-openai
-markdown
+streamlit==1.28.1
+streamlit-option-menu==0.3.6
+openai==0.28.1
+markdown==3.4.1
 psycopg2-binary
-pandas
-numpy
-redshift_connector
+pandas==1.5.3
+redshift-connector==2.0.915
