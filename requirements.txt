@@ -1,6 +1,6 @@
 streamlit
 openai
 markdown
-psycopg2
+psycopg2-binary
 pandas
 numpy
