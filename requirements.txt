@@ -4,3 +4,4 @@ markdown
 psycopg2-binary
 pandas
 numpy
+redshift_connector
