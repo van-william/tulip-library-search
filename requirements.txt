@@ -1,0 +1,7 @@
+streamlit
+openai
+markdown
+os
+psycopg2
+os
+streamlit_components
