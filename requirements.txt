@@ -1,6 +1,6 @@
 streamlit
 openai
 markdown
-os
 psycopg2
-streamlit_components
+pandas
+numpy
