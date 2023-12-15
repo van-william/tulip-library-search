@@ -13,11 +13,11 @@ def prepare_prompt(question):
     apps = body_json['apps']
     df_apps = pd.DataFrame(apps)
     apps = body_json['apps']
-    app_groups = body_json['appGroups']
+    # app_groups = body_json['appGroups']
     df_apps = pd.DataFrame(apps)
-    df_app_groups = pd.DataFrame(app_groups)
+    # df_app_groups = pd.DataFrame(app_groups)
 
-    df_union = pd.concat([df_apps, df_app_groups])
+    df_union = df_apps #pd.concat([df_apps, df_app_groups])
 
 
     #df_apps.columns
