@@ -153,7 +153,7 @@ if password == correct_password:
             url = 'https://'+user_instance+'/import?assetId=vFtgHMwMjJn0TSA'
             url = 'https://www.google.com/'
             # Create an iframe with the desired width and height
-            components.iframe(url)
+            components.iframe(url, width=700, height=400)
             print(url)
         
 
