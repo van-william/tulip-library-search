@@ -155,6 +155,11 @@ if password == correct_password:
             # Create an iframe with the desired width and height
             components.iframe(url, width=700, height=400)
             print(url)
+
+            iframe = f'<iframe src="{url}" width="700" height="400"></iframe>'
+
+            # Use the markdown component to render the iframe
+            st.markdown(iframe, unsafe_allow_html=True)
         
 
 else:
