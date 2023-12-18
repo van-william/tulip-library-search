@@ -153,5 +153,5 @@ def most_recent_content():
     # Modify the index to start with 1 instead of 0
     recent_asset_table.index = recent_asset_table.index + 1
 
-    
+    recent_asset_table = recent_asset_table.iloc[0:50]
     return recent_asset_table

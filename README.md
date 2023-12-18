@@ -17,6 +17,7 @@ interactive streamlit app for searching tulip apps
 Structure: App is segemnented into primary sections with top-level nav buttons
 1. Library Search
 2. Top Installs
+3. Recent Content
 3. Interactive Installation (WIP)
 4. Performance Visibility Quick Start Guide (WIP)
 
@@ -28,4 +29,12 @@ This section explores the possibility of enabling an LLM-based search experience
 
 ### Top Installs
 - This page is simply the top ~50 library assets sorted by top installs rolling 90 days
+
+### Recent Content
+- This creates a page with the top ~25 most recent assets added to the library 
+
+### Interactive Installation
+- This was an attempt to show a library app installation as an iframe, but this is not currently possible
+
+### Performance Visibility Quick Start
 
