@@ -9,7 +9,7 @@ from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 import os
 import streamlit_components
-from redshift_query import query_top_installs
+from library_queries import query_top_installs, most_recent_content
 import streamlit.components.v1 as components
 
 def ask_question(question):
@@ -66,6 +66,9 @@ if password == correct_password:
         if st.button('Top Installs'):
             st.session_state['page'] = 'Top Installs'
     with cols[2]:
+        if st.button('Most Recent'):
+            st.session_state['page'] = 'Most Recent'
+    with cols[3]:
         if st.button('Interactive Install'):
             st.session_state['page'] = 'Interactive Install'
 
@@ -143,6 +146,31 @@ if password == correct_password:
         # Use Streamlit's markdown to display the DataFrame as HTML
         st.markdown(df_html, unsafe_allow_html=True)
 
+
+    elif st.session_state['page'] == 'Most Recent':
+        st.title('Recently Added Content')
+
+        recent_content = most_recent_content()
+
+        # Convert URLs to clickable links
+        def make_clickable(link, name):
+            # Return the hyperlink HTML tag with the URL
+            return f'<a href="{link}" target="_blank">{name}</a>'
+
+        # Apply the function to the 'link' column
+        recent_content['link'] = recent_content.apply(lambda row: make_clickable(row['link'], row['name']), axis=1)
+        recent_content = recent_content[['link','content type', 'summary']]
+
+        top_installs = recent_content.rename(columns={
+            'link': 'name'
+      })
+
+        # Convert the entire DataFrame to an HTML table with links
+        df_html = top_installs.to_html(escape=False, index=True)
+
+        # Use Streamlit's markdown to display the DataFrame as HTML
+        st.markdown(df_html, unsafe_allow_html=True)
+    
     elif st.session_state['page'] == 'Interactive Install':
         st.title('Interactive Install')
 
