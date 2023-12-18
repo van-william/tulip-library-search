@@ -10,6 +10,7 @@ from psycopg2.extras import RealDictCursor
 import os
 import streamlit_components
 from redshift_query import query_top_installs
+import streamlit.components.v1 as components
 
 def ask_question(question):
     try:
@@ -32,9 +33,6 @@ def ask_question(question):
 
 # Function to create horizontal buttons
 import streamlit as st
-
-
-    
 
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 conn = db.create_connection()
@@ -67,6 +65,9 @@ if password == correct_password:
     with cols[1]:
         if st.button('Top Installs'):
             st.session_state['page'] = 'Top Installs'
+    with cols[2]:
+        if st.button('Interactive Install'):
+            st.session_state['page'] = 'Interactive Install'
 
 
     # Set default page if not selected
@@ -142,6 +143,18 @@ if password == correct_password:
         # Use Streamlit's markdown to display the DataFrame as HTML
         st.markdown(df_html, unsafe_allow_html=True)
 
+    elif st.session_state['page'] == 'Interactive Install':
+        st.title('Interactive Install')
+
+        user_instance = st.text_input('Enter your Tulip Instance',
+                                        key='instance')
+        
+        if user_instance:
+            url = 'https://'+user_instance+'/import?assetId=vFtgHMwMjJn0TSA'
+            # Create an iframe with the desired width and height
+            components.iframe(url)
+            print(url)
+        
 
 else:
     st.error('Password incorrect. Try again.')
