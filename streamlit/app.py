@@ -40,156 +40,157 @@ db.create_table(conn)
 
 # Streamlit page configuration
 st.set_page_config(page_title='Tulip Library App Finder', layout='centered')
+
+
+# removed password
 # Define your password
-correct_password = os.environ.get('LIB_SEARCH_PASSWORD')
+# correct_password = os.environ.get('LIB_SEARCH_PASSWORD')
 
-# Ask for the password
-password = st.text_input("Enter the password", type='password')
+# # Ask for the password
+# password = st.text_input("Enter the password", type='password')
 
-# Check the password
-if password == correct_password:
-    st.success('Password Correct!')
+# # Check the password
+# if password == correct_password:
+#     st.success('Password Correct!')
 
-    # Initialize session state
+# Initialize session state
+if 'last_question' not in st.session_state:
+    st.session_state['last_question'] = None
+if 'answer' not in st.session_state:
+    st.session_state['answer'] = None
+
+
+# Generate the navbar with buttons
+cols = st.columns(3)
+with cols[0]:
+    if st.button('Search'):
+        st.session_state['page'] = 'Search'
+with cols[1]:
+    if st.button('Top Installs'):
+        st.session_state['page'] = 'Top Installs'
+with cols[2]:
+    if st.button('Most Recent'):
+        st.session_state['page'] = 'Most Recent'
+
+
+# Set default page if not selected
+if 'page' not in st.session_state:
+    st.session_state['page'] = 'Search'
+
+# Render page based on navigation selection
+if st.session_state['page'] == 'Search':
+
+    st.title('Tulip Library App Finder')
+
+    # Initialize session state if not already present
     if 'last_question' not in st.session_state:
         st.session_state['last_question'] = None
     if 'answer' not in st.session_state:
         st.session_state['answer'] = None
 
+    # Function to handle changes in the question input
+    def on_question_change():
+        user_question = st.session_state.user_question
+        if user_question and user_question != st.session_state.get('last_question', ''):
+            st.session_state['last_question'] = user_question
+            query_id = db.insert_query(conn, user_question)
+            st.session_state['answer'] = ask_question(user_question)
+            st.session_state['query_id'] = query_id
 
-    # Generate the navbar with buttons
-    cols = st.columns(6)
-    with cols[0]:
-        if st.button('Search'):
-            st.session_state['page'] = 'Search'
-    with cols[1]:
-        if st.button('Top Installs'):
-            st.session_state['page'] = 'Top Installs'
-    with cols[2]:
-        if st.button('Most Recent'):
-            st.session_state['page'] = 'Most Recent'
-    with cols[3]:
-        if st.button('Interactive Install'):
-            st.session_state['page'] = 'Interactive Install'
+    # Use the first column for the text input
+    user_question = st.text_input('What Tulip apps are you looking for?',
+                                    key='user_question',
+                                    on_change=on_question_change)
 
+    if not('answer' in st.session_state and st.session_state['answer']):
+        st.write("Try asking about performance visibility or andon apps!")
+    col1, col2 = st.columns([3, 1])
+    # Use the second column for the feedback buttons
+    with col1:
+        if ('answer' in st.session_state and st.session_state['answer']):
+            st.markdown(st.session_state['answer']['md'])
+    with col2:
+        if 'answer' in st.session_state and st.session_state['answer']:
+            st.markdown('How do you feel about the results?')  # Title for the feedback buttons
+            # Replace the horizontal_radio with your implementation of horizontal buttons
+            # Assuming streamlit_components.horizontal_radio is already defined elsewhere
+            selected_feedback = streamlit_components.vertical_radio(
+                options=['🙂 Happy', '😐 Neutral', '🙁 Sad'],
+                key='feedback'
+            )
+            if selected_feedback:
+                feedback_text = selected_feedback[2:]
+                #db.update_feedback(conn=conn, feedback=feedback_text, query_id=st.session_state['query_id'])
 
-    # Set default page if not selected
-    if 'page' not in st.session_state:
-        st.session_state['page'] = 'Search'
+elif st.session_state['page'] == 'Top Installs':
+    st.title('Top Installed Content')
 
-    # Render page based on navigation selection
-    if st.session_state['page'] == 'Search':
+    top_installs = query_top_installs()
 
-        st.title('Tulip Library App Finder')
+    # Convert URLs to clickable links
+    def make_clickable(link, name):
+        # Return the hyperlink HTML tag with the URL
+        return f'<a href="{link}" target="_blank">{name}</a>'
 
-        # Initialize session state if not already present
-        if 'last_question' not in st.session_state:
-            st.session_state['last_question'] = None
-        if 'answer' not in st.session_state:
-            st.session_state['answer'] = None
+    # Apply the function to the 'link' column
+    top_installs['link'] = top_installs.apply(lambda row: make_clickable(row['link'], row['name']), axis=1)
+    top_installs = top_installs[['link','content type', 'summary']]
 
-        # Function to handle changes in the question input
-        def on_question_change():
-            user_question = st.session_state.user_question
-            if user_question and user_question != st.session_state.get('last_question', ''):
-                st.session_state['last_question'] = user_question
-                query_id = db.insert_query(conn, user_question)
-                st.session_state['answer'] = ask_question(user_question)
-                st.session_state['query_id'] = query_id
+    top_installs = top_installs.rename(columns={
+        'link': 'name'
+    })
 
-        # Use the first column for the text input
-        user_question = st.text_input('What Tulip apps are you looking for?',
-                                        key='user_question',
-                                        on_change=on_question_change)
+    # Convert the entire DataFrame to an HTML table with links
+    df_html = top_installs.to_html(escape=False, index=True)
 
-        if not('answer' in st.session_state and st.session_state['answer']):
-            st.write("Try asking about performance visibility or andon apps!")
-        col1, col2 = st.columns([3, 1])
-        # Use the second column for the feedback buttons
-        with col1:
-            if ('answer' in st.session_state and st.session_state['answer']):
-                st.markdown(st.session_state['answer']['md'])
-        with col2:
-            if 'answer' in st.session_state and st.session_state['answer']:
-                st.markdown('How do you feel about the results?')  # Title for the feedback buttons
-                # Replace the horizontal_radio with your implementation of horizontal buttons
-                # Assuming streamlit_components.horizontal_radio is already defined elsewhere
-                selected_feedback = streamlit_components.vertical_radio(
-                    options=['🙂 Happy', '😐 Neutral', '🙁 Sad'],
-                    key='feedback'
-                )
-                if selected_feedback:
-                    feedback_text = selected_feedback[2:]
-                    db.update_feedback(conn=conn, feedback=feedback_text, query_id=st.session_state['query_id'])
-
-    elif st.session_state['page'] == 'Top Installs':
-        st.title('Top Installed Content')
-
-        top_installs = query_top_installs()
-
-        # Convert URLs to clickable links
-        def make_clickable(link, name):
-            # Return the hyperlink HTML tag with the URL
-            return f'<a href="{link}" target="_blank">{name}</a>'
-
-        # Apply the function to the 'link' column
-        top_installs['link'] = top_installs.apply(lambda row: make_clickable(row['link'], row['name']), axis=1)
-        top_installs = top_installs[['link','content type', 'summary']]
-
-        top_installs = top_installs.rename(columns={
-            'link': 'name'
-        })
-
-        # Convert the entire DataFrame to an HTML table with links
-        df_html = top_installs.to_html(escape=False, index=True)
-
-        # Use Streamlit's markdown to display the DataFrame as HTML
-        st.markdown(df_html, unsafe_allow_html=True)
+    # Use Streamlit's markdown to display the DataFrame as HTML
+    st.markdown(df_html, unsafe_allow_html=True)
 
 
-    elif st.session_state['page'] == 'Most Recent':
-        st.title('Recently Added Content')
+elif st.session_state['page'] == 'Most Recent':
+    st.title('Recently Added Content')
 
-        recent_content = most_recent_content()
+    recent_content = most_recent_content()
 
-        # Convert URLs to clickable links
-        def make_clickable(link, name):
-            # Return the hyperlink HTML tag with the URL
-            return f'<a href="{link}" target="_blank">{name}</a>'
+    # Convert URLs to clickable links
+    def make_clickable(link, name):
+        # Return the hyperlink HTML tag with the URL
+        return f'<a href="{link}" target="_blank">{name}</a>'
 
-        # Apply the function to the 'link' column
-        recent_content['link'] = recent_content.apply(lambda row: make_clickable(row['link'], row['name']), axis=1)
-        recent_content = recent_content[['link','content type', 'summary']]
+    # Apply the function to the 'link' column
+    recent_content['link'] = recent_content.apply(lambda row: make_clickable(row['link'], row['name']), axis=1)
+    recent_content = recent_content[['link','content type', 'summary']]
 
-        top_installs = recent_content.rename(columns={
-            'link': 'name'
-      })
+    top_installs = recent_content.rename(columns={
+        'link': 'name'
+    })
 
-        # Convert the entire DataFrame to an HTML table with links
-        df_html = top_installs.to_html(escape=False, index=True)
+    # Convert the entire DataFrame to an HTML table with links
+    df_html = top_installs.to_html(escape=False, index=True)
 
-        # Use Streamlit's markdown to display the DataFrame as HTML
-        st.markdown(df_html, unsafe_allow_html=True)
+    # Use Streamlit's markdown to display the DataFrame as HTML
+    st.markdown(df_html, unsafe_allow_html=True)
+
+elif st.session_state['page'] == 'Interactive Install':
+    st.title('Interactive Install')
+
+    user_instance = st.text_input('Enter your Tulip Instance',
+                                    key='instance')
     
-    elif st.session_state['page'] == 'Interactive Install':
-        st.title('Interactive Install')
+    if user_instance:
+        url = 'https://'+user_instance+'/import?assetId=vFtgHMwMjJn0TSA'
+        #url = 'https://example.com/'
+        # Create an iframe with the desired width and height
+        components.iframe(url, width=700, height=400)
+        print(url)
 
-        user_instance = st.text_input('Enter your Tulip Instance',
-                                        key='instance')
-        
-        if user_instance:
-            url = 'https://'+user_instance+'/import?assetId=vFtgHMwMjJn0TSA'
-            #url = 'https://example.com/'
-            # Create an iframe with the desired width and height
-            components.iframe(url, width=700, height=400)
-            print(url)
+        iframe = f'<iframe src="{url}" width="700" height="400"></iframe>'
 
-            iframe = f'<iframe src="{url}" width="700" height="400"></iframe>'
+        # Use the markdown component to render the iframe
+        st.markdown(iframe, unsafe_allow_html=True)
+    
 
-            # Use the markdown component to render the iframe
-            st.markdown(iframe, unsafe_allow_html=True)
-        
-
-else:
-    st.error('Password incorrect. Try again.')
+# password deactivated
+# else:
+#     st.error('Password incorrect. Try again.')
 
