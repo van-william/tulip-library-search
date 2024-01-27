@@ -6,18 +6,16 @@ import os
 import sys
 
 def prepare_prompt(question):
-    response = requests.get('https://api.library.tulipintra.net/v2/assets')
+    response = requests.get('https://api.library.tulipintra.net/v3/assets')
     body = response.content
     body_json = json.loads(body)        
 
-    apps = body_json['apps']
-    df_apps = pd.DataFrame(apps)
     apps = body_json['apps']
     # app_groups = body_json['appGroups']
     df_apps = pd.DataFrame(apps)
     # df_app_groups = pd.DataFrame(app_groups)
 
-    df_union = df_apps #pd.concat([df_apps, df_app_groups])
+    df_union = df_apps.copy() #pd.concat([df_apps, df_app_groups])
 
 
     #df_apps.columns
